@@ -18,3 +18,7 @@ notifications:
       - inboxru@yandex.ru
     on_success: never # default: change
     on_failure: always # default: always
+
+env:
+  global:
+    - CODECOV_TOKEN="4cbb474f-b600-42f6-893d-87c72d224ca4"
