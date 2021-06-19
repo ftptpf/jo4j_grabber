@@ -16,17 +16,17 @@ import static org.quartz.SimpleScheduleBuilder.*;
 public class AlertRabbit {
     public static void main(String[] args) {
         try {
-            Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-            scheduler.start();
-            JobDetail job = newJob(Rabbit.class).build();
-            SimpleScheduleBuilder times = simpleSchedule()
+            Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler(); // создаем планировщик
+            scheduler.start(); // запускаем планировщик
+            JobDetail job = newJob(Rabbit.class).build(); // определяем выполняемую работу
+            SimpleScheduleBuilder times = simpleSchedule() // создаем временной интервал для тригера
                     .withIntervalInSeconds(getTimePeriod())
                     .repeatForever();
-            Trigger trigger = newTrigger()
+            Trigger trigger = newTrigger() // определяем условия по которым будет выполняться работа
                     .startNow()
                     .withSchedule(times)
                     .build();
-            scheduler.scheduleJob(job, trigger);
+            scheduler.scheduleJob(job, trigger); // сообщаем планировщику, что работа будет выполняться по заданному тригеру
         } catch (SchedulerException se) {
             se.printStackTrace();
         }
