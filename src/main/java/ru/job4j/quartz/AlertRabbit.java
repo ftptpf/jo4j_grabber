@@ -7,9 +7,6 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.*;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import static org.quartz.JobBuilder.*;
@@ -18,14 +15,17 @@ import static org.quartz.SimpleScheduleBuilder.*;
 
 /**
  * Вывод сообщения на консоль с заданным временным интервалом.
+ * Сохраняем в базу данных - дату, время вывода сообщения.
  */
 public class AlertRabbit {
-    private static Connection connection;
     private static Path path = Paths.get("resources/rabbit.properties"); // путь к properties файлу
     private static Properties properties = new Properties(); // настройки (properties)
+    private static String url;
+    private static String login;
+    private static String password;
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException {
-        initConnection();
+    public static void main(String[] args) {
+        loadProperties();
         try {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler(); // создаем планировщик
             scheduler.start(); // запускаем планировщик
@@ -55,9 +55,20 @@ public class AlertRabbit {
         }
 
         @Override
-        public void execute(JobExecutionContext context) throws JobExecutionException {
+        public void execute(JobExecutionContext context) {
             System.out.println("Rabbit runs here ...");
-            insertToTable(new Timestamp(System.currentTimeMillis()));
+            try {
+                Class.forName("org.postgresql.Driver");
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            /** Создаем подкючение к базе данных. Создаем таблицу и записываем данные в таблицу. */
+            try (Connection connection = DriverManager.getConnection(url, login, password)) {
+                createTable(connection);
+                insertToTable(new Timestamp(System.currentTimeMillis()), connection);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -67,35 +78,24 @@ public class AlertRabbit {
     private static void loadProperties() {
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(path.toFile()))) {
             properties.load(bufferedInputStream);
+            url = properties.getProperty("db.url");
+            login = properties.getProperty("db.login");
+            password = properties.getProperty("db.password");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * Создание соединения с базой данных.
-     * @throws ClassNotFoundException
-     * @throws SQLException
-     */
-    private static void initConnection() throws ClassNotFoundException, SQLException {
-        loadProperties();
-        Class.forName("org.postgresql.Driver");
-        String url = properties.getProperty("db.url");
-        String login = properties.getProperty("db.login");
-        String password = properties.getProperty("db.password");
-        connection = DriverManager.getConnection(url, login, password);
-        createTable();
-    }
-
-    /**
      * Создание таблицы rabbit в базе данных PostgreSQL.
+     *
      * @throws SQLException
      */
-    private static void createTable() throws SQLException {
-        try (Statement statement = connection.createStatement()) {
+    private static void createTable(Connection con) throws SQLException {
+        try (Statement statement = con.createStatement()) {
             String sql = String.format("CREATE TABLE IF NOT EXISTS rabbit (%s,%s);",
-                            "id serial primary key",
-                            "created_date timestamp"
+                    "id serial primary key",
+                    "created_date timestamp"
             );
             statement.execute(sql);
         }
@@ -103,15 +103,15 @@ public class AlertRabbit {
 
     /**
      * Вставляем данные в таблицу.
+     *
      * @param timestamp время
      */
-    private static void insertToTable(Timestamp timestamp) {
-        try (PreparedStatement prStatement = connection.prepareStatement("INSERT INTO rabbit (created_date) VALUES (?)")) {
+    private static void insertToTable(Timestamp timestamp, Connection con) {
+        try (PreparedStatement prStatement = con.prepareStatement("INSERT INTO rabbit (created_date) VALUES (?)")) {
             prStatement.setTimestamp(1, timestamp);
             prStatement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 }
