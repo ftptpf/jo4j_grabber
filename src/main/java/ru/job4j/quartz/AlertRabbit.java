@@ -15,21 +15,26 @@ import static org.quartz.SimpleScheduleBuilder.*;
 
 /**
  * Вывод сообщения на консоль с заданным временным интервалом.
- * Сохраняем в базу данных - дату, время вывода сообщения.
+ * Сохраняем в базу данные - дату и время выполнения job.
  */
 public class AlertRabbit {
     private static Path path = Paths.get("resources/rabbit.properties"); // путь к properties файлу
     private static Properties properties = new Properties(); // настройки (properties)
-    private static String url;
-    private static String login;
-    private static String password;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassNotFoundException {
         loadProperties();
-        try {
+        Class.forName("org.postgresql.Driver");
+        try (Connection connection = DriverManager.getConnection(
+                properties.getProperty("db.url"),
+                properties.getProperty("db.login"),
+                properties.getProperty("db.password"))) {
+            createTable(connection);
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler(); // создаем планировщик
             scheduler.start(); // запускаем планировщик
+            JobDataMap jobDataMap = new JobDataMap();
+            jobDataMap.put("connection", connection);
             JobDetail job = newJob(Rabbit.class) // определяем выполняемую работу
+                    .usingJobData(jobDataMap)
                     .build();
             SimpleScheduleBuilder times = simpleSchedule() // создаем временной интервал для тригера
                     .withIntervalInSeconds(Integer.parseInt(properties.getProperty("rabbit.interval")))
@@ -57,18 +62,8 @@ public class AlertRabbit {
         @Override
         public void execute(JobExecutionContext context) {
             System.out.println("Rabbit runs here ...");
-            try {
-                Class.forName("org.postgresql.Driver");
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-            /** Создаем подкючение к базе данных. Создаем таблицу и записываем данные в таблицу. */
-            try (Connection connection = DriverManager.getConnection(url, login, password)) {
-                createTable(connection);
-                insertToTable(new Timestamp(System.currentTimeMillis()), connection);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            Connection con = (Connection) context.getJobDetail().getJobDataMap().get("connection");
+            insertToTable(new Timestamp(System.currentTimeMillis()), con);
         }
     }
 
@@ -78,9 +73,6 @@ public class AlertRabbit {
     private static void loadProperties() {
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(path.toFile()))) {
             properties.load(bufferedInputStream);
-            url = properties.getProperty("db.url");
-            login = properties.getProperty("db.login");
-            password = properties.getProperty("db.password");
         } catch (IOException e) {
             e.printStackTrace();
         }
