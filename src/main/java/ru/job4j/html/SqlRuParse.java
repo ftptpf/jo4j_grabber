@@ -24,8 +24,7 @@ public class SqlRuParse {
                 System.out.println(href.text());
                 Element data = td.parent().child(5);
                 System.out.println(data.text());
-                System.out.print(new SqlRuDateTimeParser().parse(data.text()));
-                System.out.println();
+                System.out.println(new SqlRuDateTimeParser().parse(data.text()));
             }
         }
     }

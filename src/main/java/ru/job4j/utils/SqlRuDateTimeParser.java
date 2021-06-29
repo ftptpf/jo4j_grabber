@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Преобразование даты, времени полученных с сайта https://www.sql.ru/forum/job-offers
@@ -33,46 +34,21 @@ public class SqlRuDateTimeParser implements DateTimeParser {
         String[] array = str.split(" ");
         String result = str;
         if (array.length == 3) {
-            switch (array[1]) {
-                case "янв":
-                    array[1] = "январь";
-                    break;
-                case "фев":
-                    array[1] = "февраль";
-                    break;
-                case "мар":
-                    array[1] = "март";
-                    break;
-                case "апр":
-                    array[1] = "апрель";
-                    break;
-                case "май":
-                    array[1] = "май";
-                    break;
-                case "июн":
-                    array[1] = "июнь";
-                    break;
-                case "июл":
-                    array[1] = "июль";
-                    break;
-                case "авг":
-                    array[1] = "август";
-                    break;
-                case "сен":
-                    array[1] = "сентябрь";
-                    break;
-                case "окт":
-                    array[1] = "октябрь";
-                    break;
-                case "ноя":
-                    array[1] = "ньябрь";
-                    break;
-                case "дек":
-                    array[1] = "декабрь";
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected value: " + str);
-            }
+            final Map<String, String> mapMonth = Map.ofEntries(
+                    Map.entry("янв", "январь"),
+                    Map.entry("фев", "февраль"),
+                    Map.entry("мар", "март"),
+                    Map.entry("апр", "апрель"),
+                    Map.entry("май", "май"),
+                    Map.entry("июн", "июнь"),
+                    Map.entry("июл", "июль"),
+                    Map.entry("авг", "август"),
+                    Map.entry("сен", "сентябрь"),
+                    Map.entry("окт", "октябрь"),
+                    Map.entry("ноя", "ноябрь"),
+                    Map.entry("дек", "декабрь")
+            );
+            array[1] = mapMonth.get(array[1]);
             String delimiter = " ";
             result = String.join(delimiter, array);
         }
