@@ -11,6 +11,23 @@ import java.util.Map;
  * Преобразование даты, времени полученных с сайта https://www.sql.ru/forum/job-offers
  */
 public class SqlRuDateTimeParser implements DateTimeParser {
+    /**
+     * Константа для преобразования наименования месяцев.
+     */
+    private static final Map<String, String> MAP_MONTH = Map.ofEntries(
+            Map.entry("янв", "январь"),
+            Map.entry("фев", "февраль"),
+            Map.entry("мар", "март"),
+            Map.entry("апр", "апрель"),
+            Map.entry("май", "май"),
+            Map.entry("июн", "июнь"),
+            Map.entry("июл", "июль"),
+            Map.entry("авг", "август"),
+            Map.entry("сен", "сентябрь"),
+            Map.entry("окт", "октябрь"),
+            Map.entry("ноя", "ноябрь"),
+            Map.entry("дек", "декабрь")
+    );
 
     @Override
     public LocalDateTime parse(String parse) {
@@ -34,21 +51,7 @@ public class SqlRuDateTimeParser implements DateTimeParser {
         String[] array = str.split(" ");
         String result = str;
         if (array.length == 3) {
-            final Map<String, String> mapMonth = Map.ofEntries(
-                    Map.entry("янв", "январь"),
-                    Map.entry("фев", "февраль"),
-                    Map.entry("мар", "март"),
-                    Map.entry("апр", "апрель"),
-                    Map.entry("май", "май"),
-                    Map.entry("июн", "июнь"),
-                    Map.entry("июл", "июль"),
-                    Map.entry("авг", "август"),
-                    Map.entry("сен", "сентябрь"),
-                    Map.entry("окт", "октябрь"),
-                    Map.entry("ноя", "ноябрь"),
-                    Map.entry("дек", "декабрь")
-            );
-            array[1] = mapMonth.get(array[1]);
+            array[1] = MAP_MONTH.get(array[1]);
             String delimiter = " ";
             result = String.join(delimiter, array);
         }
