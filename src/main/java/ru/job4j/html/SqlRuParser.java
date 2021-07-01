@@ -11,7 +11,7 @@ import java.io.IOException;
 /**
  * Получение информации о вакансиях с первых пяти страниц сайта https://www.sql.ru/forum/job-offers
  */
-public class SqlRuParse {
+public class SqlRuParser {
     public static void main(String[] args) throws IOException {
         for (int i = 1; i <= 5; i++) {
             String url = "https://www.sql.ru/forum/job-offers/" + i;
