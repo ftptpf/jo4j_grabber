@@ -12,7 +12,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SqlRuParse implements Parse{
+/**
+ * Парсинг вакансий с сайта https://www.sql.ru/forum/job-offers
+ */
+public class SqlRuParse implements Parse {
     public static void main(String[] args) throws IOException {
         String link = "https://www.sql.ru/forum/job-offers/";
         SqlRuParse parse = new SqlRuParse();
@@ -20,7 +23,7 @@ public class SqlRuParse implements Parse{
     }
 
     /**
-     * Загружаем список вакансий одной страницы
+     * Загружаем список вакансий первых пяти страниц
      * @param link
      * @return
      * @throws IOException
@@ -55,8 +58,10 @@ public class SqlRuParse implements Parse{
         String titlePost = title.text();
         Element post = table.select("td[class=msgBody]").get(1);
         String description = post.text();
-        Element data = table.select("td[class=msgFooter]").first();
-        LocalDateTime created = new SqlRuDateTimeParser().parse(data.text());
+        String data = table.select("td[class=msgFooter]").first().childNode(0).toString();
+        //Element data = table.after("<td colspan=\"2\" class=\"msgFooter\">").before("&nbps");
+        //Element data = table.
+        LocalDateTime created = new SqlRuDateTimeParser().parse(data);
         return new Post(titlePost, link, description, created);
     }
 }
