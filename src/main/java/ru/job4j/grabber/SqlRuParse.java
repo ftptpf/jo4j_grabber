@@ -41,6 +41,7 @@ public class SqlRuParse implements Parse {
                 resultPostList.add(detail(postLink));
             }
         }
+        System.out.println(resultPostList); // вывод на консоль для дополнительной проверки
         return resultPostList;
     }
 
@@ -58,10 +59,10 @@ public class SqlRuParse implements Parse {
         String titlePost = title.text();
         Element post = table.select("td[class=msgBody]").get(1);
         String description = post.text();
-        String data = table.select("td[class=msgFooter]").first().childNode(0).toString();
-        //Element data = table.after("<td colspan=\"2\" class=\"msgFooter\">").before("&nbps");
-        //Element data = table.
-        LocalDateTime created = new SqlRuDateTimeParser().parse(data);
+        Element data = table.select("td[class=msgFooter]").first();
+        String[] array = data.text().split("\\[");
+        String dataAndTime = array[0];
+        LocalDateTime created = new SqlRuDateTimeParser().parse(dataAndTime);
         return new Post(titlePost, link, description, created);
     }
 }
