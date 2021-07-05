@@ -13,6 +13,8 @@ public class Post {
     private String description; // описание вакансии
     private LocalDateTime created; // дата создания вакансии
 
+    public Post() {}
+
     public Post(String title, String link, String description, LocalDateTime created) {
         this.title = title;
         this.link = link;
