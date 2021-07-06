@@ -59,9 +59,9 @@ public class PsqlStore implements Store, AutoCloseable {
                 "Вакансия 3D дизайнера Екатеринбург",
                 LocalDateTime.of(2021, 7, 16, 14, 1)));
         System.out.println(psqlStore.getAll());
-        System.out.println(psqlStore.findById(34));
-        System.out.println(psqlStore.findById(35));
-        System.out.println(psqlStore.findById(36));
+        System.out.println(psqlStore.findById(43));
+        System.out.println(psqlStore.findById(44));
+        System.out.println(psqlStore.findById(45));
         try {
             psqlStore.close();
         } catch (Exception e) {
@@ -76,7 +76,7 @@ public class PsqlStore implements Store, AutoCloseable {
     @Override
     public void save(Post post) {
         try (PreparedStatement prStatement = cnn.prepareStatement(
-                "INSERT INTO post (name, text, link, created) VALUES (?, ?, ?, ?)")) {
+                "INSERT INTO post (name, text, link, created) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING")) {
             prStatement.setString(1, post.getTitle());
             prStatement.setString(2, post.getDescription());
             prStatement.setString(3, post.getLink());
@@ -120,11 +120,12 @@ public class PsqlStore implements Store, AutoCloseable {
      */
     @Override
     public Post findById(int id) {
-        Post post = new Post();
+        Post post = null;
         try (PreparedStatement prStatement = cnn.prepareStatement("SELECT * FROM post WHERE id = ?")) {
             prStatement.setInt(1, id);
             try (ResultSet resultSet = prStatement.executeQuery()) {
-                while (resultSet.next()) {
+                if (resultSet.next()) {
+                    post = new Post();
                     post.setId(id);
                     post.setTitle(resultSet.getString("name"));
                     post.setLink(resultSet.getString("link"));
