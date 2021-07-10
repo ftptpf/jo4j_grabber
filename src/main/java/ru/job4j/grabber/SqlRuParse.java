@@ -48,7 +48,7 @@ public class SqlRuParse implements Parse {
                 resultPostList.add(detail(postLink));
             }
         }
-        System.out.println(resultPostList); // вывод на консоль для дополнительной проверки
+        // System.out.println(resultPostList); // вывод на консоль для дополнительной проверки
         return resultPostList;
     }
 

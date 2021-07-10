@@ -7,9 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.time.ZoneOffset;
+import java.util.*;
 
 /**
  * Подключаемся к базе данных.
@@ -80,7 +79,7 @@ public class PsqlStore implements Store, AutoCloseable {
             prStatement.setString(1, post.getTitle());
             prStatement.setString(2, post.getDescription());
             prStatement.setString(3, post.getLink());
-            prStatement.setTimestamp(4, new Timestamp(post.getCreated().getNano()));
+            prStatement.setTimestamp(4,Timestamp.valueOf(post.getCreated()));
             prStatement.execute();
 
         } catch (SQLException e) {
@@ -137,6 +136,46 @@ public class PsqlStore implements Store, AutoCloseable {
             e.printStackTrace();
         }
         return post;
+    }
+
+    /**
+     * Получаем все ссылки на вакансии.
+     * @return SET ссылок на вакансии.
+     */
+    @Override
+    public Set<String> getLinksFromBase() {
+        Set<String> result = new HashSet<>();
+        try (PreparedStatement prStatement = cnn.prepareStatement("SELECT (link) FROM post")) {
+            try (ResultSet resultSet = prStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    String link = resultSet.getString("link");
+                    result.add(link);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * Получаем из базы дату и время последней сохраненной вакансии.
+     * @return дата и время последней вакансии.
+     */
+    @Override
+    public LocalDateTime getMaxDateTimeFromBase() {
+        LocalDateTime result = LocalDateTime.ofEpochSecond(0,0, ZoneOffset.ofHours(0));
+        try (PreparedStatement prStatement = cnn.prepareStatement("SELECT MAX(created) FROM post")) {
+            try (ResultSet resultSet = prStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    if (resultSet.getString(1) != null)
+                    result = resultSet.getTimestamp(1).toLocalDateTime();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     @Override
