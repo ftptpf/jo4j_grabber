@@ -98,7 +98,7 @@ public class Grabber implements Grab {
                             && !setPostLinksFromBase.contains(post.getLink()))) {
                         store.save(post);
                         System.out.println("В базу добавлена новая вакансия " + post.getTitle()
-                                + "время создания её на сайте" + post.getCreated()) ;
+                                + "время создания её на сайте" + post.getCreated());
                     }
                 }
                 /* TODO impl logic */

@@ -79,7 +79,7 @@ public class PsqlStore implements Store, AutoCloseable {
             prStatement.setString(1, post.getTitle());
             prStatement.setString(2, post.getDescription());
             prStatement.setString(3, post.getLink());
-            prStatement.setTimestamp(4,Timestamp.valueOf(post.getCreated()));
+            prStatement.setTimestamp(4, Timestamp.valueOf(post.getCreated()));
             prStatement.execute();
 
         } catch (SQLException e) {
@@ -164,12 +164,13 @@ public class PsqlStore implements Store, AutoCloseable {
      */
     @Override
     public LocalDateTime getMaxDateTimeFromBase() {
-        LocalDateTime result = LocalDateTime.ofEpochSecond(0,0, ZoneOffset.ofHours(0));
+        LocalDateTime result = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.ofHours(0));
         try (PreparedStatement prStatement = cnn.prepareStatement("SELECT MAX(created) FROM post")) {
             try (ResultSet resultSet = prStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    if (resultSet.getString(1) != null)
-                    result = resultSet.getTimestamp(1).toLocalDateTime();
+                    if (resultSet.getString(1) != null) {
+                        result = resultSet.getTimestamp(1).toLocalDateTime();
+                    }
                 }
             }
         } catch (SQLException e) {
